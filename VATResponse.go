@@ -2,6 +2,10 @@ package vatpl
 
 // VATResponse - JSON response object
 type VATResponse struct {
+	// error response
+	Message string `json:"message"`
+	Code    string `json:"code"`
+	// normal response
 	Result struct {
 		RequestDateTime string `json:"requestDateTime"`
 		RequestID       string `json:"requestId"`

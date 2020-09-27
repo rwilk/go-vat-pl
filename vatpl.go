@@ -28,11 +28,12 @@ const (
 	CZYNNY
 	ZWOLNIONY
 	NIEZAREJESTROWANY
+	NIEZNANY
 )
 
 var APIURL = "https://wl-api.mf.gov.pl"
 
-// StatusVAT is enum: BLAD, CZYNNY, ZWOLNIONY, NIEZAREJESTROWANY
+// StatusVAT is enum: BLAD, CZYNNY, ZWOLNIONY, NIEZAREJESTROWANY, NIEZNANY
 type StatusVAT int
 
 func (s StatusVAT) String() string {
@@ -45,13 +46,15 @@ func (s StatusVAT) String() string {
 		return "Zwolniony"
 	case NIEZAREJESTROWANY:
 		return "Niezarejestrowany"
+	case NIEZNANY:
+		return "Nieznany"
 	default:
 		return fmt.Sprintf("Błąd(val: %d)", s)
 
 	}
 }
 
-func (s *StatusVAT) Parse(str string) {
+func (s *StatusVAT) FromString(str string) {
 	switch str {
 	case "Czynny":
 		*s = CZYNNY
@@ -59,9 +62,12 @@ func (s *StatusVAT) Parse(str string) {
 		*s = ZWOLNIONY
 	case "Niezarejestrowany":
 		*s = NIEZAREJESTROWANY
+	case "":
+		*s = NIEZNANY
 	default:
 		*s = BLAD
 	}
+
 }
 
 // VerifyByNIP checks VAT status. Use given date if specified or current if not.
@@ -128,7 +134,12 @@ func VerifyByNIP(nip string, date ...interface{}) (status StatusVAT, e error) {
 		return
 	}
 
-	status.Parse(vatresponse.Result.Subject.StatusVat)
+	if vatresponse.Code != "" {
+		e = fmt.Errorf("%s: %s", vatresponse.Code, vatresponse.Message)
+		return
+	}
+
+	status.FromString(vatresponse.Result.Subject.StatusVat)
 
 	return
 }
