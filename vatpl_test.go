@@ -112,3 +112,59 @@ func TestVerifyByNIP_UnknownNIP(t *testing.T) {
 		t.Errorf("VerifyByNIP = %q, want %q", got, want)
 	}
 }
+
+func TestVATError_IsPermanent(t *testing.T) {
+	// test 1 - expected permanent == true
+	nip := "1234567891"
+	want := true
+
+	_, err := VerifyByNIP(nip)
+
+	if err == nil {
+		t.Errorf("VATError (test1) expected, got nil")
+		return
+	}
+
+	e, ok := err.(*VATError)
+
+	if !ok {
+		t.Errorf("VATError (test1) asseration failed")
+		return
+	}
+
+	got := e.IsPermanent()
+
+	if got != want {
+		t.Errorf("VATError (test1) = %v, want %v", got, want)
+	}
+
+	// test 2: expected permanent == false
+	var temp_apiurl = APIURL
+	APIURL = APIURL + ".wrong.address"
+
+	defer func() {
+		APIURL = temp_apiurl
+	}()
+
+	want = false
+	_, err = VerifyByNIP(CzynnyNIP)
+
+	if err == nil {
+		t.Errorf("VATError (test2) expected, got nil")
+		return
+	}
+
+	e, ok = err.(*VATError)
+
+	if !ok {
+		t.Errorf("VATError (test2) asseration failed")
+		return
+	}
+
+	got = e.IsPermanent()
+
+	if got != want {
+		t.Errorf("VATError (test2) = %v, want %v", got, want)
+	}
+
+}
