@@ -5,7 +5,7 @@
 # Author:      Rafal Wilk <rw@pcboot.pl>
 #
 # Created:     27-09-2020
-# Modified:    27-09-2020
+# Modified:    28-09-2020
 # Copyright:   (c) PcBoot 2020
 # License:     BSD-new
 -----------------------------------------------------------------------------*/
@@ -14,7 +14,6 @@ package vatpl
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -79,12 +78,12 @@ func VerifyByNIP(nip string, date ...interface{}) (status StatusVAT, e error) {
 	nip = ParseNIP(nip)
 
 	if !tenDigits.MatchString(nip) {
-		e = errors.New("wrong NIP format")
+		e = NewVATError("wrong NIP format", true)
 		return
 	}
 
 	if len(date) > 1 {
-		e = errors.New("wrong number of arguments")
+		e = NewVATError("wrong number of arguments", true)
 		return
 	}
 
@@ -93,7 +92,7 @@ func VerifyByNIP(nip string, date ...interface{}) (status StatusVAT, e error) {
 	if len(date) == 1 {
 		datestr = dateToStr(date[0])
 		if datestr == "" {
-			e = errors.New("wrong date format: use YYYY-MM-dd or time.Time")
+			e = NewVATError("wrong date format: use YYYY-MM-dd or time.Time", true)
 			return
 		}
 	}
@@ -104,7 +103,7 @@ func VerifyByNIP(nip string, date ...interface{}) (status StatusVAT, e error) {
 
 	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
-		e = err
+		e = NewVATError(err.Error(), false)
 		return
 	}
 
@@ -116,26 +115,31 @@ func VerifyByNIP(nip string, date ...interface{}) (status StatusVAT, e error) {
 	req.Header.Set("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		e = err
+		e = NewVATError(err.Error(), false)
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		e = err
+		e = NewVATError(err.Error(), false)
 		return
 	}
 
 	var vatresponse VATResponse
 
 	if err = json.Unmarshal(body, &vatresponse); err != nil {
-		e = err
+		e = NewVATError(err.Error(), false)
 		return
 	}
 
 	if vatresponse.Code != "" {
-		e = fmt.Errorf("%s: %s", vatresponse.Code, vatresponse.Message)
+		switch vatresponse.Code {
+		case "WL-100", "WL-191", "WL-195", "WL-196":
+			e = NewVATError(fmt.Sprintf("%s: %s", vatresponse.Code, vatresponse.Message), false)
+		default:
+			e = NewVATError(fmt.Sprintf("%s: %s", vatresponse.Code, vatresponse.Message), true)
+		}
 		return
 	}
 
