@@ -12,7 +12,6 @@ const CzynnyNIP = "692-00-00-013"
 const NieznanyNIP = "375-17-84-446"
 
 func TestVerifyByNIP_DirtyFormat(t *testing.T) {
-	// KGHM Polska Miedź
 	// dirty format
 	nip := " " + CzynnyNIP + "\t"
 	want := StatusVAT(CZYNNY)
@@ -26,7 +25,6 @@ func TestVerifyByNIP_DirtyFormat(t *testing.T) {
 }
 
 func TestVerifyByNIP_DateAsString(t *testing.T) {
-	// KGHM Polska Miedź
 	nip := CzynnyNIP
 	want := StatusVAT(CZYNNY)
 
@@ -167,4 +165,16 @@ func TestVATError_IsPermanent(t *testing.T) {
 		t.Errorf("VATError (test2) = %v, want %v", got, want)
 	}
 
+}
+
+func TestVerifyByNIPRetry(t *testing.T) {
+	nip := CzynnyNIP
+	want := StatusVAT(CZYNNY)
+	got, err := VerifyByNIPRetry(nip)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	if got != want {
+		t.Errorf("VerifyByNIPRetry = %q, want %q", got, want)
+	}
 }

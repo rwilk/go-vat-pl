@@ -34,7 +34,7 @@ func main() {
 
 	nip := flag.Arg(0)
 
-	status, err := vatpl.VerifyByNIP(nip)
+	status, err := vatpl.VerifyByNIPRetry(nip)
 	if err != nil {
 		panic(err)
 	}

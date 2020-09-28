@@ -31,6 +31,7 @@ const (
 )
 
 var APIURL = "https://wl-api.mf.gov.pl"
+var RETRYCOUNT = 4
 
 // StatusVAT is enum: BLAD, CZYNNY, ZWOLNIONY, NIEZAREJESTROWANY, NIEZNANY
 type StatusVAT int
@@ -67,6 +68,33 @@ func (s *StatusVAT) FromString(str string) {
 		*s = BLAD
 	}
 
+}
+
+// VerifyByNIPRetry same as VeryfiByNIP but retry on non-permanent errors
+func VerifyByNIPRetry(nip string, date ...interface{}) (status StatusVAT, e error) {
+	var sleepSec = 1
+
+	for rc := 0; rc < RETRYCOUNT; rc++ {
+		status, e = VerifyByNIP(nip, date...)
+
+		if e == nil {
+			return
+		}
+
+		ev, ok := e.(*VATError)
+		if !ok {
+			return
+		}
+
+		if ev.Permanent {
+			return
+		}
+
+		time.Sleep(time.Duration(sleepSec) * time.Second)
+		sleepSec = sleepSec * 2
+	}
+
+	return
 }
 
 // VerifyByNIP checks VAT status. Use given date if specified or current if not.
