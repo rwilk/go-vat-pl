@@ -27,17 +27,30 @@ func main() {
 
 	flag.Parse()
 
-	if len(flag.Args()) != 1 {
-		fmt.Printf("Usage:\n\t%s <NIP>\n\n", os.Args[0])
+	if len(flag.Args()) < 1 {
+		fmt.Printf("Usage:\n\t%s <NIP> [<NIP> ...]\n\n", os.Args[0])
 		os.Exit(2)
 	}
 
-	nip := flag.Arg(0)
+	if len(flag.Args()) == 1 {
+		// single NIP verification
+		nip := flag.Arg(0)
+		status, err := vatpl.VerifyByNIPRetry(nip)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Verification status of %s - %v\n", nip, status)
+	} else {
+		// bulk NIP verification
+		nips := flag.Args()
+		statuses, err := vatpl.VerifyByNIPBulkRetry(nips)
+		if err != nil {
+			panic(err)
+		}
 
-	status, err := vatpl.VerifyByNIPRetry(nip)
-	if err != nil {
-		panic(err)
+		for nip, status := range statuses {
+			fmt.Printf("Verification status of %s - %v\n", nip, status)
+		}
 	}
 
-	fmt.Printf("Verification status of %s - %v\n", nip, status)
 }

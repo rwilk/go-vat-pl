@@ -1,6 +1,8 @@
 package vatpl
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -176,5 +178,77 @@ func TestVerifyByNIPRetry(t *testing.T) {
 	}
 	if got != want {
 		t.Errorf("VerifyByNIPRetry = %q, want %q", got, want)
+	}
+}
+
+func TestNIPPortions(t *testing.T) {
+	nips := make(map[string]string, 65)
+
+	// generate pseudo NIPs (65 pcs)
+	for i := 1; i <= 65; i++ {
+		s := fmt.Sprintf("%010d", i)
+		nips[s] = s
+	}
+
+	portions := NIPPortions(nips)
+
+	if len(portions) != 3 {
+		t.Errorf("NIPPortions = %d, want %d (slice length)", len(portions), 3)
+		return
+	}
+
+	p1 := strings.Split(portions[0], ",")
+	if len(p1) != 30 {
+		t.Errorf("NIPPortions = %d, want %d (first portion)", len(p1), 30)
+		return
+	}
+
+	p2 := strings.Split(portions[1], ",")
+	if len(p2) != 30 {
+		t.Errorf("NIPPortions = %d, want %d (second portion)", len(p2), 30)
+		return
+	}
+
+	p3 := strings.Split(portions[2], ",")
+	if len(p3) != 5 {
+		t.Errorf("NIPPortions = %d, want %d (third portion)", len(p3), 5)
+		return
+	}
+}
+
+func TestSplitNIPS(t *testing.T) {
+
+	nips := []string{CzynnyNIP, "1122334455", "12345", NieznanyNIP, "1234567890"}
+	nMap := make(map[string]string)
+
+	for _, n := range nips {
+		nMap[n] = ParseNIP(n)
+	}
+
+	good, bad := SplitNIPS(nMap)
+
+	if len(good) != 2 {
+		t.Errorf("SplitNIPS = %d, want %d (good map length)", len(good), 2)
+		return
+	}
+
+	if len(bad) != 3 {
+		t.Errorf("SplitNIPS = %d, want %d (bad map length)", len(bad), 3)
+		return
+	}
+}
+
+func TestVerifyByNIPBulkRetry_ContainsWrongNIP(t *testing.T) {
+	nips := []string{CzynnyNIP, "1122334455", "12345", NieznanyNIP, "1234567890"}
+
+	results, err := VerifyByNIPBulkRetry(nips)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	if len(results) != len(nips) {
+		t.Errorf("VerifyByNIPBulRetry = %d, want %d (nips in result)", len(results), len(nips))
+		return
 	}
 }
