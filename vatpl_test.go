@@ -252,3 +252,26 @@ func TestVerifyByNIPBulkRetry_ContainsWrongNIP(t *testing.T) {
 		return
 	}
 }
+
+func TestVerifyByNIPBulkRetry_SameNIPDiffFormat(t *testing.T) {
+	format1 := CzynnyNIP
+	format2 := ParseNIP(CzynnyNIP)
+
+	nips := []string{format1, format2}
+
+	results, err := VerifyByNIPBulkRetry(nips)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	if results[format1] != results[format2] {
+		t.Errorf("VerifyByNIPBulkRetry = %q, want %q (diffrent results for diffrent format)", results[format1], results[format2])
+		return
+	}
+
+	if results[format1] != CZYNNY {
+		t.Errorf("VerifyByNIPBulkRetry = %q, want %q (bad status)", results[format1], StatusVAT(CZYNNY))
+		return
+	}
+}

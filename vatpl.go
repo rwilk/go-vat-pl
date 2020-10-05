@@ -5,7 +5,7 @@
 # Author:      Rafal Wilk <rw@pcboot.pl>
 #
 # Created:     27-09-2020
-# Modified:    02-10-2020
+# Modified:    05-10-2020
 # Copyright:   (c) PcBoot 2020
 # License:     BSD-new
 -----------------------------------------------------------------------------*/
@@ -216,7 +216,6 @@ func VerifyByNIPBulkRetry(nips []string, date ...interface{}) (statuses map[stri
 func VerifyByNIPBulk(nips []string, date ...interface{}) (statuses map[string]StatusVAT, e error) {
 	statuses = make(map[string]StatusVAT, len(nips))
 	resource := "/api/search/nips/%s?date=%s"
-	//tenDigits := regexp.MustCompile(`^\d{10}$`)
 
 	// nips in "clean" format
 	nMap := make(map[string]string)
@@ -224,7 +223,7 @@ func VerifyByNIPBulk(nips []string, date ...interface{}) (statuses map[string]St
 	for _, n := range nips {
 		nMap[n] = ParseNIP(n)
 	}
-	nMapInv := invertMap(nMap)
+	//nMapInv := invertMap(nMap)
 
 	nMapGood, nMapBad := SplitNIPS(nMap)
 
@@ -303,7 +302,8 @@ func VerifyByNIPBulk(nips []string, date ...interface{}) (statuses map[string]St
 		for _, s := range vatresponse.Result.Subjects {
 			var status StatusVAT
 			status.FromString(s.StatusVat)
-			statuses[nMapInv[s.Nip]] = status
+			//statuses[nMapInv[s.Nip]] = status
+			statuses = setForAllKeys(statuses, s.Nip, status)
 		}
 	}
 	return
@@ -413,4 +413,15 @@ func invertMap(m map[string]string) map[string]string {
 	}
 
 	return inverted
+}
+
+// setForAllKeys - sets status for all keys with given nip (all formats)
+func setForAllKeys(nMap map[string]StatusVAT, parsedNIP string, status StatusVAT) map[string]StatusVAT {
+	for k, _ := range nMap {
+		if pk := ParseNIP(k); pk == parsedNIP {
+			nMap[k] = status
+		}
+	}
+
+	return nMap
 }
