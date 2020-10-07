@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"os"
 
-	vatpl "go-vat-pl"
+	vatpl "github.com/rwilk/go-vat-pl"
 )
 
 func main() {
