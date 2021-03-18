@@ -5,8 +5,8 @@
 # Author:      Rafal Wilk <rw@pcboot.pl>
 #
 # Created:     27-09-2020
-# Modified:    07-10-2020
-# Copyright:   (c) PcBoot 2020
+# Modified:    18-03-2021
+# Copyright:   (c) PcBoot 2021
 # License:     BSD-new
 -----------------------------------------------------------------------------*/
 
@@ -299,11 +299,24 @@ func VerifyByNIPBulk(nips []string, date ...interface{}) (statuses map[string]St
 			return
 		}
 
-		for _, s := range vatresponse.Result.Subjects {
-			var status StatusVAT
-			status.FromString(s.StatusVat)
-			//statuses[nMapInv[s.Nip]] = status
-			statuses = setForAllKeys(statuses, s.Nip, status)
+		/*
+			// before 2021-03-01
+			for _, s := range vatresponse.Result.Subjects {
+				var status StatusVAT
+				status.FromString(s.StatusVat)
+				//statuses[nMapInv[s.Nip]] = status
+				statuses = setForAllKeys(statuses, s.Nip, status)
+			}
+		*/
+
+		// after 2021-03-01
+		for _, en := range vatresponse.Result.Entries {
+			for _, s := range en.Subjects {
+				var status StatusVAT
+				status.FromString(s.StatusVat)
+				//statuses[nMapInv[s.Nip]] = status
+				statuses = setForAllKeys(statuses, s.Nip, status)
+			}
 		}
 	}
 	return

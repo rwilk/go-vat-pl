@@ -5,8 +5,8 @@
 # Author:      Rafal Wilk <rw@pcboot.pl>
 #
 # Created:     27-09-2020
-# Modified:    02-10-2020
-# Copyright:   (c) PcBoot 2020
+# Modified:    18-03-2021
+# Copyright:   (c) PcBoot 2021
 # License:     BSD-new
 -----------------------------------------------------------------------------*/
 
@@ -22,7 +22,7 @@ import (
 
 func main() {
 	fmt.Println("Check-VAT command line VAT status verifier")
-	fmt.Println("All rights reserved. (c) PcBoot 2020")
+	fmt.Println("All rights reserved. (c) PcBoot 2021")
 	fmt.Println()
 
 	flag.Parse()
